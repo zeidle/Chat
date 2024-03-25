@@ -35,6 +35,7 @@ class ChatInteractor: ChatDataStore {
 	private var networkWorker = ChatNetworkWorker()
 	private var currentMessagesOffset = 0
 	private var isRefreshing = false
+	private var loadedAllMessages: Bool = false
 
 	// MARK: - Internal properties
 
@@ -67,11 +68,12 @@ extension ChatInteractor: ChatBusinessLogic {
 			self.presenter?.presentInitialMessages(with: response)
 
 			self.isRefreshing = false
+			self.loadedAllMessages = result.count < Constant.messagesBatchSize
 		}
 	}
 
 	func fetchOlderMessages() {
-		guard !isRefreshing else { return }
+		guard !isRefreshing, !loadedAllMessages else { return }
 
 		presenter?.showRefreshControl()
 		
@@ -80,6 +82,8 @@ extension ChatInteractor: ChatBusinessLogic {
 		isRefreshing = true
 		networkWorker.fetchMessages(offset: newCurrentMessagesOffset, limit: Constant.messagesBatchSize) { [weak self] result in
 			guard let self else { return }
+
+			self.loadedAllMessages = result.count < Constant.messagesBatchSize
 
 			self.currentMessagesOffset += newCurrentMessagesOffset
 
