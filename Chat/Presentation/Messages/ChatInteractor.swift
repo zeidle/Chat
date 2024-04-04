@@ -61,33 +61,41 @@ extension ChatInteractor: ChatBusinessLogic {
 		isRefreshing = true
 		currentMessagesOffset = 0
 
-		networkWorker.fetchMessages(offset: 0, limit: Constant.messagesBatchSize) { [weak self] result in
-			guard let self else { return }
+		Task(priority: .background) {
 
-			let response = ChatModel.FetchMessage.Response(values: result)
-			self.presenter?.presentInitialMessages(with: response)
+			let limit = Constant.messagesBatchSize
 
-			self.isRefreshing = false
-			self.loadedAllMessages = result.count < Constant.messagesBatchSize
+			let messages: [ApiMessage] = await networkWorker
+				.fetchMessages(offset:0, limit: limit)
+
+			let response = convertToResponse(messages)
+
+			loadedAllMessages = messages.count < Constant.messagesBatchSize
+
+			presenter?.presentInitialMessages(with: response)
+
+			isRefreshing = false
 		}
 	}
 
 	func fetchOlderMessages() {
+
 		guard !isRefreshing, !loadedAllMessages else { return }
 
-		presenter?.showRefreshControl()
-		
-		let newCurrentMessagesOffset = self.currentMessagesOffset + Constant.messagesBatchSize
-
 		isRefreshing = true
-		networkWorker.fetchMessages(offset: newCurrentMessagesOffset, limit: Constant.messagesBatchSize) { [weak self] result in
-			guard let self else { return }
 
-			self.loadedAllMessages = result.count < Constant.messagesBatchSize
 
+		Task(priority: .background) {
+			presenter?.showRefreshControl()
+			let limit = Constant.messagesBatchSize
+			let newCurrentMessagesOffset = currentMessagesOffset + limit
+			let messages: [ApiMessage] = await networkWorker
+				.fetchMessages(offset:newCurrentMessagesOffset, limit: limit)
 			self.currentMessagesOffset += newCurrentMessagesOffset
 
-			let response = ChatModel.FetchMessage.Response(values: result)
+			self.loadedAllMessages = messages.count < Constant.messagesBatchSize
+
+			let response = convertToResponse(messages)
 
 			self.presenter?.presentOlderMessages(with: response)
 
@@ -107,5 +115,15 @@ extension ChatInteractor: ChatBusinessLogic {
 		guard needToFetch else { return }
 
 		fetchOlderMessages()
+	}
+
+	func convertToResponse(_ messages: [ApiMessage]) -> ChatModel.FetchMessage.Response {
+		let result = messages.reduce(into: [String: [String]]()) { partialResult, message in
+			let date = message.date
+			let title = message.title
+
+			partialResult[date, default: []].append(title)
+		}
+		return .init(messages: result)
 	}
 }

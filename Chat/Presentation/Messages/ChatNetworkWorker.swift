@@ -9,23 +9,36 @@ import Foundation
 
 class ChatNetworkWorker {
 
-	typealias ResultCompletion = ([Int]) -> ()
-	private var messages: [Int] = Array(0...100).reversed()
+	private let mockRequestUrl = Bundle.main.url(forResource: "mockRequestMessages", withExtension: "json")
 
-	func fetchMessages(offset: Int, limit: Int, _ completion: ResultCompletion?) {
+	func fetchMessages(offset: Int, limit: Int) async -> [ApiMessage] {
 
-		DispatchQueue.global().asyncAfter(deadline: .now() + 1) { [weak self] in
+		guard let mockRequestUrl else { return [] }
 
-			guard let self, offset < self.messages.count else {
-				completion?([])
-				return
+		try? await Task.sleep(seconds: 3)
+
+		var result = [ApiMessage]()
+
+		do {
+			let data = try Data(contentsOf: mockRequestUrl)
+
+			var messages = try JSONDecoder().decode([ApiMessage].self, from: data)
+
+			messages.reverse()
+
+			guard offset < messages.count else {
+				return []
 			}
-			
+
 			let startIndex = offset
-			let endIndex = min(offset + limit, self.messages.count)
+			let endIndex = min(offset + limit, messages.count)
 			let slicedMessages = messages[startIndex..<endIndex]
 
-			completion?(Array(slicedMessages).reversed())
+			result = Array(slicedMessages).reversed()
+		} catch {
+			print(error.localizedDescription)
 		}
+
+		return result
 	}
 }

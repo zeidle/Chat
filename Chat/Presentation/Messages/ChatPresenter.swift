@@ -22,6 +22,8 @@ final class ChatPresener: ChatPresentationLogic {
 
 	// MARK: - Internal properties
 
+	typealias Response = ChatModel.FetchMessage.Response
+
 	weak var viewController: ChatDisplayLogic?
 
 	deinit {
@@ -30,19 +32,18 @@ final class ChatPresener: ChatPresentationLogic {
 
 	// MARK: - Internal methods
 
-	func presentInitialMessages(with response: ChatModel.FetchMessage.Response) {
-		let titles = response.values.map { String($0) }
-		let viewModel = ChatModel.FetchMessage.ViewModel(cellTitles: titles)
+	func presentInitialMessages(with response: Response) {
 
-		viewController?.reloadMessages(with: viewModel)
+		let response = convertToViewModel(response)
+
+		viewController?.reloadMessages(with: response)
 	}
 
-	func presentOlderMessages(with response: ChatModel.FetchMessage.Response) {
+	func presentOlderMessages(with response: Response) {
 
-		let titles = response.values.map { String($0) }
-		let viewModel = ChatModel.FetchMessage.ViewModel(cellTitles: titles)
+		let response = convertToViewModel(response)
 
-		viewController?.addOlderMessages(with: viewModel)
+		viewController?.addOlderMessages(with: response)
 	}
 
 	func showRefreshControl() {
@@ -51,5 +52,17 @@ final class ChatPresener: ChatPresentationLogic {
 
 	func hideRefreshControl() {
 		viewController?.hideRefreshControl()
+	}
+}
+
+private extension ChatPresener {
+
+	func convertToViewModel(_ response: Response) -> ChatViewController.ViewModel {
+		typealias MessageGroup =  ChatModel.FetchMessage.ViewModel.MessageGroup
+
+		let messageGroups: [MessageGroup] = response.messages.map {
+			MessageGroup(date: $0, messages: $1)
+		}
+		return .init(messageGroups: messageGroups)
 	}
 }

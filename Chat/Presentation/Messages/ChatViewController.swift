@@ -23,6 +23,7 @@ protocol ChatDisplayLogic: AnyObject where Self: UIViewController {
 
 class ChatViewController: UIViewController {
 
+	typealias ViewModel = ChatModel.FetchMessage.ViewModel
 	// MARK: - Internal properties
 
 	var interactor: ChatBusinessLogic?
@@ -32,15 +33,16 @@ class ChatViewController: UIViewController {
 	private var isRefreshing: Bool = false
 	private var messagesContentSize: CGSize = .zero
 	private let cellId = "cellId"
-	private var titles: [String] = []
+	private var messageGroups: [ViewModel.MessageGroup] = []
 	private lazy var tableView: UITableView = {
-		let tableView = UITableView()
+		let tableView = UITableView(frame: .zero, style: .grouped)
 
 		tableView.delegate = self
 		tableView.dataSource = self
 		tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellId)
 		tableView.allowsSelection = false
 		tableView.keyboardDismissMode = .interactive
+		tableView.sectionHeaderTopPadding = .zero
 
 		tableView.refreshControl = refreshControl
 		tableView.refreshControl?.layer.zPosition = -1
@@ -127,9 +129,18 @@ extension ChatViewController: ChatDisplayLogic {
 		DispatchQueue.main.async { [weak self] in
 			guard let self else { return }
 
-			self.titles = model.cellTitles
+			self.messageGroups = model.messageGroups
 			self.tableView.reloadData()
-			self.tableView.setContentOffset(.init(x: 0, y: .max), animated: false)
+
+			let lastSection = tableView.numberOfSections - 1
+			let lastRow = tableView.numberOfRows(inSection: lastSection) - 1
+
+			guard lastSection >= 0, lastRow >= 0 else { return }
+
+			let indexPath = IndexPath(row: lastRow, section: lastSection)
+
+			self.tableView.scrollToRow(at: indexPath, at: .bottom, animated: false)
+			self.tableView.layoutIfNeeded()
 		}
 	}
 
@@ -138,18 +149,17 @@ extension ChatViewController: ChatDisplayLogic {
 		DispatchQueue.main.async { [weak self] in
 			guard let self else { return }
 
-			let oldContentHeight = tableView.contentSize.height
-			self.titles.insert(contentsOf: model.cellTitles, at: 0)
+			self.messageGroups.merge(model.messageGroups)
+			self.messageGroups.sort()
 
+			let beforeContentSize = self.tableView.contentSize
 			self.tableView.reloadData()
 			self.tableView.layoutIfNeeded()
 
-			let newContentHeight = self.tableView.contentSize.height
-
-			let offsetY = newContentHeight - oldContentHeight
+			let afterContentSize = self.tableView.contentSize
 
 			var contentOffset = self.tableView.contentOffset
-			contentOffset.y += offsetY
+			contentOffset.y += afterContentSize.height - beforeContentSize.height
 
 			self.tableView.setContentOffset(contentOffset, animated: false)
 		}
@@ -158,16 +168,18 @@ extension ChatViewController: ChatDisplayLogic {
 	func showRefreshControl() {
 		DispatchQueue.main.async { [weak self] in
 			guard let self else { return }
-			self.refreshControl.beginRefreshing()
+
 			self.isRefreshing = true
+			self.refreshControl.beginRefreshing()
 		}
 	}
 
 	func hideRefreshControl() {
 		DispatchQueue.main.async { [weak self] in
 			guard let self else { return }
-			self.refreshControl.endRefreshing()
+
 			self.isRefreshing = false
+			self.refreshControl.endRefreshing()
 		}
 	}
 }
@@ -199,23 +211,28 @@ private extension ChatViewController {
 
 extension ChatViewController: UITableViewDelegate, UITableViewDataSource {
 	func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-		titles.count
+
+		messageGroups[section].messages.count
 	}
-	
+
 	func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
 
-		let title = titles[indexPath.row]
+		let section = indexPath.section
+		let row = indexPath.row
+		let messageGroup = messageGroups[section]
+		let message = messageGroup.messages[row]
 
 		let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath)
 
-		cell.textLabel?.text = title
+		cell.textLabel?.numberOfLines = 0
+		cell.textLabel?.text = message
 
 		return cell
 	}
 
 	func scrollViewDidScroll(_ scrollView: UIScrollView) {
 
-		guard scrollView.isTracking else { return }
+		guard !isRefreshing, scrollView.isTracking else { return }
 
 		let visibleSize = scrollView.visibleSize
 		let contentOffset = scrollView.contentOffset
@@ -223,6 +240,18 @@ extension ChatViewController: UITableViewDelegate, UITableViewDataSource {
 		let request = ChatModel.TableMessagesInfo.Request(visibleSize: visibleSize, contentOffset: contentOffset)
 
 		interactor?.messagesDidScroll(request: request)
+
+	}
+
+	func numberOfSections(in tableView: UITableView) -> Int {
+		messageGroups.count
+	}
+
+	func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+
+		let date = messageGroups[section].date
+
+		return ChatDateSection(date: date)
 	}
 }
 
@@ -235,6 +264,7 @@ extension ChatViewController: InputBarViewDelegate {
 	}
 
 	func inputBar(_ inputBar: InputBarView, didChangeIntrinsicContentFrom size: CGSize) {
+
 		let offsetY = inputBar.frame.height - size.height
 		let contentHeight = tableView.contentSize.height
 		let visibleContentHeight = tableView.visibleSize.height

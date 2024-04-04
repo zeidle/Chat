@@ -6,8 +6,6 @@
 import Foundation
 
 enum ChatModel {
-	struct DataStore {
-	}
 
 	enum TableMessagesInfo {
 		struct Request {
@@ -19,10 +17,35 @@ enum ChatModel {
 		struct Request {
 		}
 		struct Response {
-			var values: [Int]
+			var messages: [String: [String]]
 		}
 		struct ViewModel {
-			var cellTitles: [String]
+
+			var messageGroups: [MessageGroup]
 		}
 	}
 }
+
+extension ChatModel.FetchMessage.ViewModel {
+
+	struct MessageGroup: ModelMergeable, Comparable {
+		let date: String
+		var messages: [String]
+
+		static func < (lhs: Self, rhs: Self) -> Bool {
+			lhs.date < rhs.date
+		}
+
+		static func == (lhs: Self, rhs: Self) -> Bool {
+			lhs.date == rhs.date
+		}
+
+		mutating func merge(_ other: Self) {
+
+			guard other.date == date else { return }
+
+			messages.insert(contentsOf: other.messages, at: 0)
+		}
+	}
+}
+

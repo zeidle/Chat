@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		801A8CF62BBAF7AA00FC5B3D /* mockRequestMessages.json in Resources */ = {isa = PBXBuildFile; fileRef = 801A8CF52BBAF7AA00FC5B3D /* mockRequestMessages.json */; };
 		801CAF342BAC38C0007FBE27 /* ChatPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 801CAF2E2BAC38C0007FBE27 /* ChatPresenter.swift */; };
 		801CAF352BAC38C0007FBE27 /* ChatRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 801CAF2F2BAC38C0007FBE27 /* ChatRouter.swift */; };
 		801CAF362BAC38C0007FBE27 /* ChatModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 801CAF302BAC38C0007FBE27 /* ChatModels.swift */; };
@@ -14,6 +15,7 @@
 		801CAF382BAC38C0007FBE27 /* ChatInteractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 801CAF322BAC38C0007FBE27 /* ChatInteractor.swift */; };
 		801CAF392BAC38C0007FBE27 /* ChatConfigurator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 801CAF332BAC38C0007FBE27 /* ChatConfigurator.swift */; };
 		801CAF3B2BAC50A1007FBE27 /* ChatNetworkWorker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 801CAF3A2BAC50A1007FBE27 /* ChatNetworkWorker.swift */; };
+		801D4FB12BB3EF2C007707BB /* Array+Merge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 801D4FB02BB3EF2C007707BB /* Array+Merge.swift */; };
 		8034925A2BA2F014007AB14B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 803492592BA2F014007AB14B /* AppDelegate.swift */; };
 		8034925C2BA2F014007AB14B /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8034925B2BA2F014007AB14B /* SceneDelegate.swift */; };
 		803492632BA2F016007AB14B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 803492622BA2F016007AB14B /* Assets.xcassets */; };
@@ -24,11 +26,15 @@
 		8067C1B42BAEF63E00DD47CA /* InputBarViewDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8067C1B32BAEF63E00DD47CA /* InputBarViewDelegate.swift */; };
 		8067C1B82BAEF6BA00DD47CA /* UIColor+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8067C1B72BAEF6BA00DD47CA /* UIColor+Extensions.swift */; };
 		8067C1BA2BAEF7C100DD47CA /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8067C1B92BAEF7C100DD47CA /* Colors.xcassets */; };
+		806DF80F2BB1C1510005E5E8 /* ApiMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 806DF80E2BB1C1510005E5E8 /* ApiMessage.swift */; };
+		806DF8112BB1C5280005E5E8 /* Task+extenstions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 806DF8102BB1C5280005E5E8 /* Task+extenstions.swift */; };
+		809CEDB82BB18B3200E5F9FF /* ChatDateSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 809CEDB72BB18B3200E5F9FF /* ChatDateSection.swift */; };
 		91C6AD68C544AFAF48A1E68F /* Pods_Chat.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CC180C5AE13C45EBBCB024EF /* Pods_Chat.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		5AAA0B3E85DE0262197B1EC9 /* Pods-Chat.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Chat.release.xcconfig"; path = "Target Support Files/Pods-Chat/Pods-Chat.release.xcconfig"; sourceTree = "<group>"; };
+		801A8CF52BBAF7AA00FC5B3D /* mockRequestMessages.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = mockRequestMessages.json; sourceTree = "<group>"; };
 		801CAF2E2BAC38C0007FBE27 /* ChatPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatPresenter.swift; sourceTree = "<group>"; };
 		801CAF2F2BAC38C0007FBE27 /* ChatRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatRouter.swift; sourceTree = "<group>"; };
 		801CAF302BAC38C0007FBE27 /* ChatModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatModels.swift; sourceTree = "<group>"; };
@@ -36,6 +42,7 @@
 		801CAF322BAC38C0007FBE27 /* ChatInteractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatInteractor.swift; sourceTree = "<group>"; };
 		801CAF332BAC38C0007FBE27 /* ChatConfigurator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatConfigurator.swift; sourceTree = "<group>"; };
 		801CAF3A2BAC50A1007FBE27 /* ChatNetworkWorker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatNetworkWorker.swift; sourceTree = "<group>"; };
+		801D4FB02BB3EF2C007707BB /* Array+Merge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Array+Merge.swift"; sourceTree = "<group>"; };
 		803492562BA2F014007AB14B /* Chat.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Chat.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		803492592BA2F014007AB14B /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		8034925B2BA2F014007AB14B /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -48,6 +55,9 @@
 		8067C1B32BAEF63E00DD47CA /* InputBarViewDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputBarViewDelegate.swift; sourceTree = "<group>"; };
 		8067C1B72BAEF6BA00DD47CA /* UIColor+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+Extensions.swift"; sourceTree = "<group>"; };
 		8067C1B92BAEF7C100DD47CA /* Colors.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Colors.xcassets; sourceTree = "<group>"; };
+		806DF80E2BB1C1510005E5E8 /* ApiMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApiMessage.swift; sourceTree = "<group>"; };
+		806DF8102BB1C5280005E5E8 /* Task+extenstions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Task+extenstions.swift"; sourceTree = "<group>"; };
+		809CEDB72BB18B3200E5F9FF /* ChatDateSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatDateSection.swift; sourceTree = "<group>"; };
 		CC180C5AE13C45EBBCB024EF /* Pods_Chat.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Chat.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		EA0782533F000FBEF17262B8 /* Pods-Chat.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Chat.debug.xcconfig"; path = "Target Support Files/Pods-Chat/Pods-Chat.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -99,6 +109,7 @@
 				803492642BA2F016007AB14B /* LaunchScreen.storyboard */,
 				803492672BA2F016007AB14B /* Info.plist */,
 				8067C1B92BAEF7C100DD47CA /* Colors.xcassets */,
+				801A8CF52BBAF7AA00FC5B3D /* mockRequestMessages.json */,
 			);
 			path = "Supporting files";
 			sourceTree = "<group>";
@@ -115,6 +126,7 @@
 		8034926F2BA2F13F007AB14B /* Presentation */ = {
 			isa = PBXGroup;
 			children = (
+				806DF80C2BB1ACDD0005E5E8 /* Network */,
 				8067C1B62BAEF6A100DD47CA /* Extensions */,
 				8067C1B52BAEF69300DD47CA /* Helpers */,
 				8067C1AB2BAEF58B00DD47CA /* Components */,
@@ -140,6 +152,7 @@
 		8067C1AB2BAEF58B00DD47CA /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				809CEDB62BB18B1C00E5F9FF /* ChatTableView */,
 				8067C1AC2BAEF5BD00DD47CA /* InputBar */,
 			);
 			path = Components;
@@ -159,6 +172,8 @@
 		8067C1B52BAEF69300DD47CA /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
+				806DF8102BB1C5280005E5E8 /* Task+extenstions.swift */,
+				801D4FB02BB3EF2C007707BB /* Array+Merge.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -169,6 +184,30 @@
 				8067C1B72BAEF6BA00DD47CA /* UIColor+Extensions.swift */,
 			);
 			path = Extensions;
+			sourceTree = "<group>";
+		};
+		806DF80C2BB1ACDD0005E5E8 /* Network */ = {
+			isa = PBXGroup;
+			children = (
+				806DF80D2BB1ACE80005E5E8 /* Models */,
+			);
+			path = Network;
+			sourceTree = "<group>";
+		};
+		806DF80D2BB1ACE80005E5E8 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				806DF80E2BB1C1510005E5E8 /* ApiMessage.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		809CEDB62BB18B1C00E5F9FF /* ChatTableView */ = {
+			isa = PBXGroup;
+			children = (
+				809CEDB72BB18B3200E5F9FF /* ChatDateSection.swift */,
+			);
+			path = ChatTableView;
 			sourceTree = "<group>";
 		};
 		8D0D41AFB06FB4B87EB84150 /* Pods */ = {
@@ -249,6 +288,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8067C1BA2BAEF7C100DD47CA /* Colors.xcassets in Resources */,
+				801A8CF62BBAF7AA00FC5B3D /* mockRequestMessages.json in Resources */,
 				803492662BA2F016007AB14B /* LaunchScreen.storyboard in Resources */,
 				803492632BA2F016007AB14B /* Assets.xcassets in Resources */,
 			);
@@ -308,13 +348,17 @@
 				801CAF3B2BAC50A1007FBE27 /* ChatNetworkWorker.swift in Sources */,
 				801CAF362BAC38C0007FBE27 /* ChatModels.swift in Sources */,
 				801CAF372BAC38C0007FBE27 /* ChatViewController.swift in Sources */,
+				801D4FB12BB3EF2C007707BB /* Array+Merge.swift in Sources */,
+				809CEDB82BB18B3200E5F9FF /* ChatDateSection.swift in Sources */,
 				8067C1AE2BAEF60800DD47CA /* InputBarView.swift in Sources */,
 				801CAF382BAC38C0007FBE27 /* ChatInteractor.swift in Sources */,
+				806DF8112BB1C5280005E5E8 /* Task+extenstions.swift in Sources */,
 				801CAF392BAC38C0007FBE27 /* ChatConfigurator.swift in Sources */,
 				8067C1B02BAEF61C00DD47CA /* InputBarTextView.swift in Sources */,
 				8067C1B42BAEF63E00DD47CA /* InputBarViewDelegate.swift in Sources */,
 				8034925A2BA2F014007AB14B /* AppDelegate.swift in Sources */,
 				8067C1B82BAEF6BA00DD47CA /* UIColor+Extensions.swift in Sources */,
+				806DF80F2BB1C1510005E5E8 /* ApiMessage.swift in Sources */,
 				8067C1B22BAEF62E00DD47CA /* InputBarSendButton.swift in Sources */,
 				8034925C2BA2F014007AB14B /* SceneDelegate.swift in Sources */,
 			);
