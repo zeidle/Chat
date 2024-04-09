@@ -26,8 +26,6 @@ final class ChatDateSection: UIStackView {
 		label.numberOfLines = 1
 
 		label.textAlignment = .center
-		let heightConstraint = label.heightAnchor.constraint(equalToConstant: 26)
-		heightConstraint.isActive = true
 
 		return label
 	}()
@@ -55,10 +53,9 @@ private extension ChatDateSection {
 		spacing = 8
 		dateLabel.text = date
 
-		NSLayoutConstraint.activate([
-			heightAnchor.constraint(greaterThanOrEqualToConstant: 42)
-		])
-
+		let heightConstraint = heightAnchor.constraint(greaterThanOrEqualToConstant: 42)
+		heightConstraint.priority = .defaultLow
+		heightConstraint.isActive = true
 
 		setupSubviews()
 	}
@@ -83,8 +80,8 @@ private extension ChatDateSection {
 
 	class PaddingLabel: UILabel {
 
-		var topInset: CGFloat = 5.0
-		var bottomInset: CGFloat = 5.0
+		var topInset: CGFloat = 3.0
+		var bottomInset: CGFloat = 3.0
 		var leftInset: CGFloat = 16.0
 		var rightInset: CGFloat = 16.0
 

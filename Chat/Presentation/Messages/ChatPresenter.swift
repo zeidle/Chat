@@ -57,11 +57,11 @@ final class ChatPresener: ChatPresentationLogic {
 
 private extension ChatPresener {
 
-	func convertToViewModel(_ response: Response) -> ChatViewController.ViewModel {
-		typealias MessageGroup =  ChatModel.FetchMessage.ViewModel.MessageGroup
+	func convertToViewModel(_ response: Response) -> ChatModel.FetchMessage.ViewModel {
+		typealias MessageGroup = ChatModel.MessagesGroup
 
-		let messageGroups: [MessageGroup] = response.messages.map {
-			MessageGroup(date: $0, messages: $1)
+		let messageGroups: [MessageGroup] = response.messagesGroups.map {
+			MessageGroup(date: $0.key, messages: $0.value)
 		}
 		return .init(messageGroups: messageGroups)
 	}

@@ -17,20 +17,36 @@ enum ChatModel {
 		struct Request {
 		}
 		struct Response {
-			var messages: [String: [String]]
+			var messagesGroups: [String: [Message]]
 		}
 		struct ViewModel {
 
-			var messageGroups: [MessageGroup]
+			var messageGroups: [MessagesGroup]
 		}
 	}
 }
 
-extension ChatModel.FetchMessage.ViewModel {
+// Models
+extension ChatModel {
 
-	struct MessageGroup: ModelMergeable, Comparable {
+	struct Message {
+		var date: String
+		var text: String
+
+		init(text: String) {
+			self.date = "01.02.24"
+			self.text = text
+		}
+
+		init(apiModel: ApiMessage) {
+			self.date = apiModel.date
+			self.text = apiModel.title
+		}
+	}
+
+	struct MessagesGroup: Mergeable, Comparable {
 		let date: String
-		var messages: [String]
+		var messages: [Message]
 
 		static func < (lhs: Self, rhs: Self) -> Bool {
 			lhs.date < rhs.date
@@ -40,11 +56,12 @@ extension ChatModel.FetchMessage.ViewModel {
 			lhs.date == rhs.date
 		}
 
-		mutating func merge(_ other: Self) {
-
-			guard other.date == date else { return }
-
+		func merge(_ other: Self) -> Self {
+			guard other.date == date else { return self }
+			var messages = self.messages
 			messages.insert(contentsOf: other.messages, at: 0)
+
+			return MessagesGroup(date: date, messages: messages)
 		}
 	}
 }

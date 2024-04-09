@@ -28,7 +28,7 @@ protocol ChatDataStore: AnyObject {
 class ChatInteractor: ChatDataStore {
 
 	enum Constant {
-		static let messagesBatchSize = 20
+		static let messagesBatchSize = 10
 	}
 	// MARK: - Private properties
 
@@ -61,7 +61,7 @@ extension ChatInteractor: ChatBusinessLogic {
 		isRefreshing = true
 		currentMessagesOffset = 0
 
-		Task(priority: .background) {
+		Task(priority: .medium) {
 
 			let limit = Constant.messagesBatchSize
 
@@ -80,15 +80,13 @@ extension ChatInteractor: ChatBusinessLogic {
 
 	func fetchOlderMessages() {
 
-		guard !isRefreshing, !loadedAllMessages else { return }
+		presenter?.showRefreshControl()
+		
+		let limit = Constant.messagesBatchSize
+		let newCurrentMessagesOffset = currentMessagesOffset + limit
 
 		isRefreshing = true
-
-
 		Task(priority: .background) {
-			presenter?.showRefreshControl()
-			let limit = Constant.messagesBatchSize
-			let newCurrentMessagesOffset = currentMessagesOffset + limit
 			let messages: [ApiMessage] = await networkWorker
 				.fetchMessages(offset:newCurrentMessagesOffset, limit: limit)
 			self.currentMessagesOffset += newCurrentMessagesOffset
@@ -112,18 +110,15 @@ extension ChatInteractor: ChatBusinessLogic {
 
 		let needToFetch = contentOffset.y <= visibleSize.height
 
-		guard needToFetch else { return }
+		guard needToFetch, !isRefreshing, !loadedAllMessages else { return }
 
 		fetchOlderMessages()
 	}
 
 	func convertToResponse(_ messages: [ApiMessage]) -> ChatModel.FetchMessage.Response {
-		let result = messages.reduce(into: [String: [String]]()) { partialResult, message in
-			let date = message.date
-			let title = message.title
+		let messages = messages.map { ChatModel.Message(apiModel: $0) }
+		let messagesGroups = Dictionary(grouping: messages) { $0.date }
 
-			partialResult[date, default: []].append(title)
-		}
-		return .init(messages: result)
+		return .init(messagesGroups: messagesGroups)
 	}
 }

@@ -15,7 +15,7 @@ class ChatNetworkWorker {
 
 		guard let mockRequestUrl else { return [] }
 
-		try? await Task.sleep(seconds: 3)
+		try? await Task.sleep(seconds: 1)
 
 		var result = [ApiMessage]()
 

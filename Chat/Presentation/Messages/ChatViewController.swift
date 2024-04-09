@@ -23,7 +23,7 @@ protocol ChatDisplayLogic: AnyObject where Self: UIViewController {
 
 class ChatViewController: UIViewController {
 
-	typealias ViewModel = ChatModel.FetchMessage.ViewModel
+	typealias MessagesGroup = ChatModel.MessagesGroup
 	// MARK: - Internal properties
 
 	var interactor: ChatBusinessLogic?
@@ -33,7 +33,7 @@ class ChatViewController: UIViewController {
 	private var isRefreshing: Bool = false
 	private var messagesContentSize: CGSize = .zero
 	private let cellId = "cellId"
-	private var messageGroups: [ViewModel.MessageGroup] = []
+	private var messagesGroups: [MessagesGroup] = []
 	private lazy var tableView: UITableView = {
 		let tableView = UITableView(frame: .zero, style: .grouped)
 
@@ -46,6 +46,11 @@ class ChatViewController: UIViewController {
 
 		tableView.refreshControl = refreshControl
 		tableView.refreshControl?.layer.zPosition = -1
+		tableView.sectionHeaderTopPadding = 0
+		tableView.sectionFooterHeight = 0
+		tableView.estimatedRowHeight = 10
+		tableView.estimatedSectionHeaderHeight = 42
+//		tableView.estimatedSectionFooterHeight = 500
 
 		return tableView
 	}()
@@ -106,7 +111,7 @@ extension ChatViewController: ChatDisplayLogic {
 		tableView.translatesAutoresizingMaskIntoConstraints = false
 
 		NSLayoutConstraint.activate([
-			tableView.topAnchor.constraint(equalTo: view.topAnchor),
+			tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
 			tableView.leftAnchor.constraint(equalTo: view.leftAnchor),
 			tableView.rightAnchor.constraint(equalTo: view.rightAnchor),
 		])
@@ -129,8 +134,9 @@ extension ChatViewController: ChatDisplayLogic {
 		DispatchQueue.main.async { [weak self] in
 			guard let self else { return }
 
-			self.messageGroups = model.messageGroups
+			self.messagesGroups = model.messageGroups
 			self.tableView.reloadData()
+			self.tableView.layoutIfNeeded()
 
 			let lastSection = tableView.numberOfSections - 1
 			let lastRow = tableView.numberOfRows(inSection: lastSection) - 1
@@ -140,7 +146,6 @@ extension ChatViewController: ChatDisplayLogic {
 			let indexPath = IndexPath(row: lastRow, section: lastSection)
 
 			self.tableView.scrollToRow(at: indexPath, at: .bottom, animated: false)
-			self.tableView.layoutIfNeeded()
 		}
 	}
 
@@ -149,19 +154,46 @@ extension ChatViewController: ChatDisplayLogic {
 		DispatchQueue.main.async { [weak self] in
 			guard let self else { return }
 
-			self.messageGroups.merge(model.messageGroups)
-			self.messageGroups.sort()
+			let mergedMessagesGroups = messagesGroups.merge(model.messageGroups).sorted()
 
-			let beforeContentSize = self.tableView.contentSize
-			self.tableView.reloadData()
-			self.tableView.layoutIfNeeded()
+			var sectionsSet = IndexSet()
+			var rowsIndexPaths = [IndexPath]()
+			let oldMessagesGroups = messagesGroups
 
-			let afterContentSize = self.tableView.contentSize
+			messagesGroups = mergedMessagesGroups
 
-			var contentOffset = self.tableView.contentOffset
-			contentOffset.y += afterContentSize.height - beforeContentSize.height
+			mergedMessagesGroups.enumerated().forEach { (sectionIndex, messagesGroup) in
 
-			self.tableView.setContentOffset(contentOffset, animated: false)
+				let oldMessagesGroup = oldMessagesGroups.first { $0 == messagesGroup }
+
+				if let oldMessagesGroup {
+					let newMessagesNumber = messagesGroup.messages.count
+					let oldMessagesNumber = oldMessagesGroup.messages.count
+
+					let newRowsNumber = newMessagesNumber - oldMessagesNumber
+
+					rowsIndexPaths += (0..<newRowsNumber)
+						.map { IndexPath(row: $0, section: sectionIndex)}
+
+				} else {
+					sectionsSet.insert(sectionIndex)
+				}
+			}
+
+			let beforeOffsetY = self.tableView.contentOffset.y
+			let tempOffsetY = beforeOffsetY <= .zero ? abs(beforeOffsetY) + 1 : .zero
+
+			UIView.animate(withDuration: .zero) {
+				self.tableView.performBatchUpdates {
+					self.tableView.contentOffset.y += tempOffsetY
+					self.tableView.insertRows(at: rowsIndexPaths, with: .automatic)
+					self.tableView.insertSections(sectionsSet, with: .automatic)
+				} completion: { finished in
+					guard beforeOffsetY <= 0 else { return }
+
+					self.tableView.contentOffset.y -= tempOffsetY
+				}
+			}
 		}
 	}
 
@@ -212,20 +244,20 @@ private extension ChatViewController {
 extension ChatViewController: UITableViewDelegate, UITableViewDataSource {
 	func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
 
-		messageGroups[section].messages.count
+		messagesGroups[section].messages.count
 	}
 
 	func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
 
 		let section = indexPath.section
 		let row = indexPath.row
-		let messageGroup = messageGroups[section]
+		let messageGroup = messagesGroups[section]
 		let message = messageGroup.messages[row]
 
 		let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath)
 
 		cell.textLabel?.numberOfLines = 0
-		cell.textLabel?.text = message
+		cell.textLabel?.text = message.text
 
 		return cell
 	}
@@ -244,12 +276,12 @@ extension ChatViewController: UITableViewDelegate, UITableViewDataSource {
 	}
 
 	func numberOfSections(in tableView: UITableView) -> Int {
-		messageGroups.count
+		messagesGroups.count
 	}
 
 	func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
 
-		let date = messageGroups[section].date
+		let date = messagesGroups[section].date
 
 		return ChatDateSection(date: date)
 	}

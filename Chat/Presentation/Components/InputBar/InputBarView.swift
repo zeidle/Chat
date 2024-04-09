@@ -67,7 +67,6 @@ final class InputBarView: UIView {
 	override func layoutSubviews() {
 		super.layoutSubviews()
 
-		print("InputBarView layoutSubviews")
 		defer { previousIntrinsicContentSize = frame.size }
 
 		let prevHeight = previousIntrinsicContentSize.height

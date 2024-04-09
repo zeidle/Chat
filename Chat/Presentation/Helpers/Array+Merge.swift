@@ -5,22 +5,22 @@
 
 import Foundation
 
-protocol ModelMergeable: Comparable {
-	mutating func merge(_ other: Self)
+protocol Mergeable: Comparable {
+	func merge(_ other: Self) -> Self
 }
 
-extension Array where Element: ModelMergeable {
+extension Array where Element: Mergeable {
 
-	mutating func merge(_ other: [Element]) {
+	func merge(_ other: [Element]) -> [Element] {
 
-		self = other.reduce(into: self) { partialResult, element in
-			let sameElementIndex = partialResult.firstIndex { element == $0 }
-
-			if let sameElementIndex {
-				partialResult[sameElementIndex].merge(element)
+		var result = self
+		other.forEach { element in
+			if let index = result.firstIndex(where: { $0 == element }) {
+				result[index] = result[index].merge(element)
 			} else {
-				partialResult.insert(element, at: 0)
+				result.append(element)
 			}
 		}
+		return result
 	}
 }
