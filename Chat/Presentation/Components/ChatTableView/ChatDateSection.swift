@@ -7,9 +7,20 @@ import UIKit
 
 // MARK: - ChatDateSection
 
-final class ChatDateSection: UIStackView {
+final class ChatDateSection: UICollectionReusableView {
 
-	private let date: String
+	static let reuseIdentifier = String(describing: ChatDateSection.self)
+
+	private var mainStackView: UIStackView = {
+		let stackView = UIStackView()
+		stackView.backgroundColor = .orange
+		stackView.axis = .horizontal
+		stackView.distribution = .fill
+		stackView.alignment = .center
+		stackView.spacing = 8
+
+		return stackView
+	}()
 
 	private var separator: UIView {
 		let view = UIView()
@@ -30,10 +41,8 @@ final class ChatDateSection: UIStackView {
 		return label
 	}()
 
-	init(date: String) {
-		self.date = date
-
-		super.init(frame: .zero)
+	override init(frame: CGRect) {
+		super.init(frame: frame)
 
 		setup()
 	}
@@ -43,30 +52,41 @@ final class ChatDateSection: UIStackView {
 	}
 }
 
+extension ChatDateSection {
+
+	func updateTitle(_ title: String) {
+		dateLabel.text = title
+	}
+}
+
 private extension ChatDateSection {
 
 	func setup() {
-		backgroundColor = .orange
-		axis = .horizontal
-		distribution = .fill
-		alignment = .center
-		spacing = 8
-		dateLabel.text = date
 
-		let heightConstraint = heightAnchor.constraint(greaterThanOrEqualToConstant: 42)
-		heightConstraint.priority = .defaultLow
-		heightConstraint.isActive = true
+//		let heightConstraint = heightAnchor.constraint(greaterThanOrEqualToConstant: 42)
+//		heightConstraint.priority = .defaultLow
+//		heightConstraint.isActive = true
 
 		setupSubviews()
 	}
 
 	func setupSubviews() {
+		addSubview(mainStackView)
+
+		mainStackView.translatesAutoresizingMaskIntoConstraints = false
+
+		NSLayoutConstraint.activate([
+			mainStackView.topAnchor.constraint(equalTo: topAnchor),
+			mainStackView.leftAnchor.constraint(equalTo: leftAnchor),
+			mainStackView.rightAnchor.constraint(equalTo: rightAnchor),
+			mainStackView.bottomAnchor.constraint(equalTo: bottomAnchor)
+		])
 		let leftSeparator = separator
 		let rightSeparator = separator
 
-		addArrangedSubview(leftSeparator)
-		addArrangedSubview(dateLabel)
-		addArrangedSubview(rightSeparator)
+		mainStackView.addArrangedSubview(leftSeparator)
+		mainStackView.addArrangedSubview(dateLabel)
+		mainStackView.addArrangedSubview(rightSeparator)
 
 		NSLayoutConstraint.activate([
 			leftSeparator.widthAnchor.constraint(equalTo: rightSeparator.widthAnchor),

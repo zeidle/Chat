@@ -32,27 +32,35 @@ class ChatViewController: UIViewController {
 	// MARK: - private properties
 	private var isRefreshing: Bool = false
 	private var messagesContentSize: CGSize = .zero
-	private let cellId = "cellId"
+
+	private var flowLayout: UICollectionViewFlowLayout = {
+		let layout = UICollectionViewFlowLayout()
+		layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
+//		layout.itemSize = UICollectionViewFlowLayout.automaticSize
+		layout.scrollDirection = .vertical
+		layout.minimumLineSpacing = 4
+
+		return layout
+	}()
 	private var messagesGroups: [MessagesGroup] = []
-	private lazy var tableView: UITableView = {
-		let tableView = UITableView(frame: .zero, style: .grouped)
+	private lazy var collectionView: UICollectionView = {
 
-		tableView.delegate = self
-		tableView.dataSource = self
-		tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellId)
-		tableView.allowsSelection = false
-		tableView.keyboardDismissMode = .interactive
-		tableView.sectionHeaderTopPadding = .zero
 
-		tableView.refreshControl = refreshControl
-		tableView.refreshControl?.layer.zPosition = -1
-		tableView.sectionHeaderTopPadding = 0
-		tableView.sectionFooterHeight = 0
-		tableView.estimatedRowHeight = 10
-		tableView.estimatedSectionHeaderHeight = 42
-//		tableView.estimatedSectionFooterHeight = 500
+		let collectionView = UICollectionView(frame: .zero, collectionViewLayout: flowLayout)
 
-		return tableView
+		collectionView.delegate = self
+		collectionView.dataSource = self
+		collectionView.register(MessageCell.self, forCellWithReuseIdentifier: MessageCell.reuseIdentifier)
+		collectionView.register(ChatDateSection.self,
+								forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
+								withReuseIdentifier: ChatDateSection.reuseIdentifier)
+		collectionView.allowsSelection = false
+		collectionView.keyboardDismissMode = .onDrag
+
+		collectionView.refreshControl = refreshControl
+		collectionView.refreshControl?.layer.zPosition = -1
+
+		return collectionView
 	}()
 
 	private lazy var refreshControl: UIRefreshControl = {
@@ -79,11 +87,13 @@ class ChatViewController: UIViewController {
 		interactor?.viewDidLoad()
 
 		//   Эта строка предотвращает баг связанный с некорректным отображением цвета в refreshControl (https://stackoverflow.com/a/31224299))
-		self.tableView.contentOffset = CGPoint(x:0, y:-self.refreshControl.frame.size.height)
+		self.collectionView.contentOffset = CGPoint(x:0, y:-self.refreshControl.frame.size.height)
 	}
+
 
 	deinit {
 		print("-- \(String(describing: Self.self)) deinit")
+		NotificationCenter.default.removeObserver(self)
 	}
 }
 
@@ -96,6 +106,29 @@ extension ChatViewController: ChatDisplayLogic {
 		setupLocalize()
 		setupAccessibilityIdentifier()
 		setupAccessibilityLabel()
+		setupObservers()
+	}
+
+	func setupObservers() {
+		NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
+			NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
+	}
+
+	@objc func keyboardWillShow(notification: Notification) {
+		if let keyboardSize = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue {
+			if self.view.frame.origin.y == 0 {
+				self.view.frame.origin.y -= keyboardSize.height
+			}
+		}
+
+	}
+
+	@objc func keyboardWillHide(notification: Notification) {
+		if let keyboardSize = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue {
+			if self.view.frame.origin.y != 0 {
+				self.view.frame.origin.y += keyboardSize.height
+			}
+		}
 	}
 
 	func setupUI() {
@@ -106,14 +139,14 @@ extension ChatViewController: ChatDisplayLogic {
 	}
 
 	func setupTableView() {
-		view.addSubview(tableView)
+		view.addSubview(collectionView)
 
-		tableView.translatesAutoresizingMaskIntoConstraints = false
+		collectionView.translatesAutoresizingMaskIntoConstraints = false
 
 		NSLayoutConstraint.activate([
-			tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-			tableView.leftAnchor.constraint(equalTo: view.leftAnchor),
-			tableView.rightAnchor.constraint(equalTo: view.rightAnchor),
+			collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+			collectionView.leftAnchor.constraint(equalTo: view.leftAnchor),
+			collectionView.rightAnchor.constraint(equalTo: view.rightAnchor),
 		])
 	}
 
@@ -123,7 +156,7 @@ extension ChatViewController: ChatDisplayLogic {
 		inputBarView.translatesAutoresizingMaskIntoConstraints = false
 
 		NSLayoutConstraint.activate([
-			inputBarView.topAnchor.constraint(equalTo: tableView.bottomAnchor),
+			inputBarView.topAnchor.constraint(equalTo: collectionView.bottomAnchor),
 			inputBarView.leftAnchor.constraint(equalTo: view.leftAnchor),
 			inputBarView.rightAnchor.constraint(equalTo: view.rightAnchor),
 			inputBarView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16)
@@ -135,17 +168,17 @@ extension ChatViewController: ChatDisplayLogic {
 			guard let self else { return }
 
 			self.messagesGroups = model.messageGroups
-			self.tableView.reloadData()
-			self.tableView.layoutIfNeeded()
+			self.collectionView.reloadData()
+			self.collectionView.layoutIfNeeded()
 
-			let lastSection = tableView.numberOfSections - 1
-			let lastRow = tableView.numberOfRows(inSection: lastSection) - 1
+			let lastSection = collectionView.numberOfSections - 1
+			let lastRow = collectionView.numberOfItems(inSection: lastSection) - 1
 
 			guard lastSection >= 0, lastRow >= 0 else { return }
 
 			let indexPath = IndexPath(row: lastRow, section: lastSection)
 
-			self.tableView.scrollToRow(at: indexPath, at: .bottom, animated: false)
+			self.collectionView.scrollToItem(at: indexPath, at: .bottom, animated: false)
 		}
 	}
 
@@ -156,44 +189,23 @@ extension ChatViewController: ChatDisplayLogic {
 
 			let mergedMessagesGroups = messagesGroups.merge(model.messageGroups).sorted()
 
-			var sectionsSet = IndexSet()
-			var rowsIndexPaths = [IndexPath]()
-			let oldMessagesGroups = messagesGroups
-
 			messagesGroups = mergedMessagesGroups
 
-			mergedMessagesGroups.enumerated().forEach { (sectionIndex, messagesGroup) in
+			let beforeContentSize = self.collectionView.contentSize
+			let beforeContentOffset = self.collectionView.contentOffset
 
-				let oldMessagesGroup = oldMessagesGroups.first { $0 == messagesGroup }
+			self.collectionView.reloadData()
+			self.collectionView.layoutIfNeeded()
 
-				if let oldMessagesGroup {
-					let newMessagesNumber = messagesGroup.messages.count
-					let oldMessagesNumber = oldMessagesGroup.messages.count
+			let afterContentSize = self.collectionView.contentSize
+			let afterContentOffset = self.collectionView.contentOffset
 
-					let newRowsNumber = newMessagesNumber - oldMessagesNumber
+			print("beforeSize: \(beforeContentSize.height)")
+			print("afterSize: \(afterContentSize.height)")
+			print("beforeContentOffset: \(beforeContentOffset)")
+			print("afterContentOffset: \(afterContentOffset)")
 
-					rowsIndexPaths += (0..<newRowsNumber)
-						.map { IndexPath(row: $0, section: sectionIndex)}
-
-				} else {
-					sectionsSet.insert(sectionIndex)
-				}
-			}
-
-			let beforeOffsetY = self.tableView.contentOffset.y
-			let tempOffsetY = beforeOffsetY <= .zero ? abs(beforeOffsetY) + 1 : .zero
-
-			UIView.animate(withDuration: .zero) {
-				self.tableView.performBatchUpdates {
-					self.tableView.contentOffset.y += tempOffsetY
-					self.tableView.insertRows(at: rowsIndexPaths, with: .automatic)
-					self.tableView.insertSections(sectionsSet, with: .automatic)
-				} completion: { finished in
-					guard beforeOffsetY <= 0 else { return }
-
-					self.tableView.contentOffset.y -= tempOffsetY
-				}
-			}
+			collectionView.contentOffset.y = afterContentSize.height - beforeContentSize.height + beforeContentOffset.y
 		}
 	}
 
@@ -241,30 +253,45 @@ private extension ChatViewController {
 
 // MARK: - TableViewDelegate & TableViewSource
 
-extension ChatViewController: UITableViewDelegate, UITableViewDataSource {
-	func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-
+extension ChatViewController: UICollectionViewDelegate, UICollectionViewDataSource {
+	func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
 		messagesGroups[section].messages.count
 	}
 
-	func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-
+	func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
 		let section = indexPath.section
 		let row = indexPath.row
 		let messageGroup = messagesGroups[section]
 		let message = messageGroup.messages[row]
 
-		let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath)
+		let cell = collectionView.dequeueReusableCell(withReuseIdentifier: MessageCell.reuseIdentifier, for: indexPath)
 
-		cell.textLabel?.numberOfLines = 0
-		cell.textLabel?.text = message.text
+		guard let cell = cell as? MessageCell else { return .init() }
+
+		cell.updateTitle(message.text)
 
 		return cell
 	}
 
+	func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+
+		let sectionView = collectionView.dequeueReusableSupplementaryView(ofKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: ChatDateSection.reuseIdentifier, for: indexPath)
+
+		guard let sectionView = sectionView as? ChatDateSection else { return .init() }
+
+		let date = messagesGroups[indexPath.section].date
+		sectionView.updateTitle(date)
+
+		return sectionView
+	}
+
+	func numberOfSections(in collectionView: UICollectionView) -> Int {
+		messagesGroups.count
+	}
+
 	func scrollViewDidScroll(_ scrollView: UIScrollView) {
 
-		guard !isRefreshing, scrollView.isTracking else { return }
+		guard !isRefreshing else { return }
 
 		let visibleSize = scrollView.visibleSize
 		let contentOffset = scrollView.contentOffset
@@ -274,17 +301,21 @@ extension ChatViewController: UITableViewDelegate, UITableViewDataSource {
 		interactor?.messagesDidScroll(request: request)
 
 	}
+}
 
-	func numberOfSections(in tableView: UITableView) -> Int {
-		messagesGroups.count
+extension ChatViewController: UICollectionViewDelegateFlowLayout {
+
+	func collectionView(
+	  _ collectionView: UICollectionView,
+	  layout collectionViewLayout: UICollectionViewLayout,
+	  referenceSizeForHeaderInSection section: Int
+	) -> CGSize {
+		let width = Int(collectionView.frame.width)
+		let height = 42
+
+		return CGSize(width: width, height: height)
 	}
 
-	func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-
-		let date = messagesGroups[section].date
-
-		return ChatDateSection(date: date)
-	}
 }
 
 // MARK: - InputBarDelegate
@@ -298,16 +329,42 @@ extension ChatViewController: InputBarViewDelegate {
 	func inputBar(_ inputBar: InputBarView, didChangeIntrinsicContentFrom size: CGSize) {
 
 		let offsetY = inputBar.frame.height - size.height
-		let contentHeight = tableView.contentSize.height
-		let visibleContentHeight = tableView.visibleSize.height
-		let contentOffsetY = tableView.contentOffset.y
+		let contentHeight = collectionView.contentSize.height
+		let visibleContentHeight = collectionView.visibleSize.height
+		let contentOffsetY = collectionView.contentOffset.y
 
 		let didScrollToBottom = (contentHeight - visibleContentHeight) == contentOffsetY
 
 		guard !didScrollToBottom else { return }
 
-		tableView.contentOffset.y += offsetY
+		collectionView.contentOffset.y += offsetY
 	}
 
 	func inputBar(_ inputBar: InputBarView, textViewTextDidChangeTo text: String) {}
+}
+
+final class CommentFlowLayout : UICollectionViewFlowLayout {
+
+//	override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
+//			let layoutAttributesObjects = super.layoutAttributesForElements(in: rect)?.map{ $0.copy() } as? [UICollectionViewLayoutAttributes]
+//			layoutAttributesObjects?.forEach({ layoutAttributes in
+//				if layoutAttributes.representedElementCategory == .cell {
+//					if let newFrame = layoutAttributesForItem(at: layoutAttributes.indexPath)?.frame {
+//						layoutAttributes.frame = newFrame
+//					}
+//				}
+//			})
+//			return layoutAttributesObjects
+//		}
+//
+//	override func layoutAttributesForItem(at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
+//		guard let collectionView = collectionView else { fatalError() }
+//		guard let layoutAttributes = super.layoutAttributesForItem(at: indexPath)?.copy() as? UICollectionViewLayoutAttributes else {
+//			return nil
+//		}
+//
+//		layoutAttributes.frame.origin.x = sectionInset.left
+//		layoutAttributes.frame.size.width = collectionView.safeAreaLayoutGuide.layoutFrame.width - sectionInset.left - sectionInset.right
+//		return layoutAttributes
+//	}
 }
